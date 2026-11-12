@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CS2DROP — Открытие кейсов CS2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <a href="#" class="logo">
+      <span class="logo-icon">⬡</span>
+      <span class="logo-text">CS2<b>DROP</b></span>
+    </a>
+    <nav class="nav">
+      <a href="#cases" class="nav-link active">Кейсы</a>
+      <a href="#upgrades" class="nav-link">Апгрейд</a>
+      <a href="#battles" class="nav-link">Битвы</a>
+      <a href="#contracts" class="nav-link">Контракты</a>
+    </nav>
+    <div class="header-right">
+      <div class="balance-block">
+        <span class="balance-icon">💰</span>
+        <span class="balance-amount" id="balance">1 000.00</span>
+        <span class="balance-cur">₽</span>
+      </div>
+      <button class="btn btn-deposit" onclick="openDeposit()">+ Пополнить</button>
+      <button class="btn btn-login" onclick="openAuth()">Войти через Steam</button>
+    </div>
+    <button class="burger" onclick="toggleMenu()">☰</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🔥 Ежедневный бонус</div>
+    <h1 class="hero-title">Открывай кейсы CS2<br/><span class="gradient-text">и выигрывай редкие скины</span></h1>
+    <p class="hero-sub">Честные шансы • Мгновенный вывод • Провабельная честность</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary" onclick="document.getElementById('cases').scrollIntoView({behavior:'smooth'})">Открыть кейс</button>
+      <button class="btn btn-outline">Как это работает?</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">12 847</span><span class="stat-label">Игроков онлайн</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><span class="stat-num">3 290 112</span><span class="stat-label">Кейсов открыто</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat"><span class="stat-num">₽ 847M+</span><span class="stat-label">Выплачено</span></div>
+    </div>
+  </div>
+  <div class="hero-weapon">
+    <div class="weapon-glow"></div>
+    <div class="hero-case-3d">🗃️</div>
+  </div>
+</section>
+
+<!-- LIVE FEED -->
+<div class="live-feed" id="liveFeed">
+  <div class="live-title">🔴 Live</div>
+  <div class="live-items" id="liveItems"></div>
+</div>
+
+<!-- CASES SECTION -->
+<section class="section" id="cases">
+  <div class="section-header">
+    <h2 class="section-title">Кейсы</h2>
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="filterCases('all',this)">Все</button>
+      <button class="filter-tab" onclick="filterCases('cheap',this)">До 500₽</button>
+      <button class="filter-tab" onclick="filterCases('medium',this)">500–2000₽</button>
+      <button class="filter-tab" onclick="filterCases('premium',this)">Премиум</button>
+    </div>
+  </div>
+  <div class="cases-grid" id="casesGrid"></div>
+</section>
+
+<!-- CASE OPEN MODAL -->
+<div class="modal-overlay" id="caseModal" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeCaseModal()">✕</button>
+    <div class="modal-header">
+      <div class="modal-case-img" id="modalCaseImg">🗃️</div>
+      <div>
+        <h3 class="modal-title" id="modalCaseName">Название кейса</h3>
+        <p class="modal-price" id="modalCasePrice">₽ 0</p>
+      </div>
+    </div>
+
+    <!-- ROULETTE -->
+    <div class="roulette-wrap" id="rouletteWrap">
+      <div class="roulette-arrow">▼</div>
+      <div class="roulette-track-outer">
+        <div class="roulette-track" id="rouletteTrack"></div>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="result-block" id="resultBlock" style="display:none">
+      <div class="result-rarity-bar" id="resultRarityBar"></div>
+      <div class="result-skin-img" id="resultSkinImg"></div>
+      <div class="result-name" id="resultName"></div>
+      <div class="result-rarity" id="resultRarity"></div>
+      <div class="result-price" id="resultPrice"></div>
+      <div class="result-actions">
+        <button class="btn btn-sell" onclick="sellItem()">Продать</button>
+        <button class="btn btn-primary" onclick="openAgain()">Открыть ещё</button>
+      </div>
+    </div>
+
+    <!-- CONTENT LIST -->
+    <div class="items-list" id="itemsList">
+      <h4 class="items-list-title">Содержимое кейса</h4>
+      <div class="items-grid" id="itemsGrid"></div>
+    </div>
+
+    <div class="open-controls">
+      <div class="open-qty">
+        <span>Количество:</span>
+        <button class="qty-btn" onclick="changeQty(-1)">−</button>
+        <span class="qty-val" id="qtyVal">1</span>
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+      </div>
+      <button class="btn btn-primary btn-open" id="openBtn" onclick="startOpen()">
+        Открыть за <span id="openPrice">₽ 0</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- DEPOSIT MODAL -->
+<div class="modal-overlay" id="depositModal" onclick="closeDepositModal(event)">
+  <div class="modal modal-sm">
+    <button class="modal-close" onclick="closeDepositModal()">✕</button>
+    <h3 class="modal-title">Пополнение баланса</h3>
+    <div class="deposit-amounts">
+      <button class="dep-amt" onclick="setDeposit(100)">100₽</button>
+      <button class="dep-amt" onclick="setDeposit(500)">500₽</button>
+      <button class="dep-amt" onclick="setDeposit(1000)">1000₽</button>
+      <button class="dep-amt" onclick="setDeposit(2500)">2500₽</button>
+      <button class="dep-amt" onclick="setDeposit(5000)">5000₽</button>
+      <button class="dep-amt" onclick="setDeposit(10000)">10000₽</button>
+    </div>
+    <div class="deposit-custom">
+      <input type="number" id="depositInput" placeholder="Введите сумму" class="dep-input" />
+      <span class="dep-rub">₽</span>
+    </div>
+    <div class="deposit-methods">
+      <button class="dep-method active" onclick="selectMethod(this,'card')">💳 Карта</button>
+      <button class="dep-method" onclick="selectMethod(this,'qiwi')">🟠 QIWI</button>
+      <button class="dep-method" onclick="selectMethod(this,'crypto')">₿ Крипто</button>
+      <button class="dep-method" onclick="selectMethod(this,'sbp')">⚡ СБП</button>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="confirmDeposit()">Пополнить</button>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal" onclick="closeAuthModal(event)">
+  <div class="modal modal-sm auth-modal">
+    <button class="modal-close" onclick="closeAuthModal()">✕</button>
+    <div class="auth-logo">⬡ CS2DROP</div>
+    <h3 class="modal-title">Войдите в аккаунт</h3>
+    <p class="auth-sub">Используйте Steam для быстрого входа</p>
+    <button class="btn-steam" onclick="steamLogin()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.605 0 11.979 0z"/></svg>
+      Войти через Steam
+    </button>
+    <div class="auth-divider">или</div>
+    <div class="auth-form">
+      <input type="email" placeholder="Email" class="auth-input" />
+      <input type="password" placeholder="Пароль" class="auth-input" />
+      <button class="btn btn-primary btn-full">Войти</button>
+      <p class="auth-reg">Нет аккаунта? <a href="#">Зарегистрироваться</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- UPGRADE SECTION -->
+<section class="section" id="upgrades">
+  <div class="section-header">
+    <h2 class="section-title">Апгрейд скинов</h2>
+  </div>
+  <div class="upgrade-block">
+    <div class="upgrade-side">
+      <div class="upgrade-label">Ваш скин</div>
+      <div class="upgrade-skin-card" id="upgFrom" onclick="selectUpgSkin()">
+        <div class="upgrade-placeholder">Выберите скин</div>
+      </div>
+      <div class="upgrade-price-label" id="upgFromPrice">₽ 0</div>
+    </div>
+    <div class="upgrade-center">
+      <div class="upgrade-wheel-wrap">
+        <div class="upgrade-wheel" id="upgradeWheel">
+          <div class="upgrade-wheel-inner" id="upgradeWheelInner"></div>
+          <div class="upgrade-wheel-arrow">▶</div>
+        </div>
+        <div class="upgrade-chance" id="upgradeChance">ШАНС: 0%</div>
+      </div>
+      <button class="btn btn-primary btn-upgrade" id="upgradeBtn" onclick="doUpgrade()" disabled>⚡ Апгрейд</button>
+    </div>
+    <div class="upgrade-side">
+      <div class="upgrade-label">Получить</div>
+      <div class="upgrade-skin-card" id="upgTo" onclick="selectTargetSkin()">
+        <div class="upgrade-placeholder">Выберите цель</div>
+      </div>
+      <div class="upgrade-price-label" id="upgToPrice">₽ 0</div>
+    </div>
+  </div>
+</section>
+
+<!-- INVENTORY SECTION -->
+<section class="section" id="inventory">
+  <div class="section-header">
+    <h2 class="section-title">Мой инвентарь</h2>
+    <div class="inv-controls">
+      <span class="inv-total" id="invTotal">0 предметов</span>
+      <button class="btn btn-outline btn-sm" onclick="sellAll()">Продать всё</button>
+    </div>
+  </div>
+  <div class="inventory-grid" id="inventoryGrid">
+    <p class="empty-inv">Откройте кейс, чтобы получить скины 🎁</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="logo-icon">⬡</span> CS2DROP
+      <p>Лучший сайт открытия кейсов CS2.<br/>Честные шансы, мгновенный вывод.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Игры</h4>
+      <a href="#">Кейсы</a>
+      <a href="#">Апгрейд</a>
+      <a href="#">Битвы кейсов</a>
+      <a href="#">Контракты</a>
+    </div>
+    <div class="footer-links">
+      <h4>Поддержка</h4>
+      <a href="#">FAQ</a>
+      <a href="#">Правила</a>
+      <a href="#">Провабельная честность</a>
+      <a href="#">Связаться</a>
+    </div>
+    <div class="footer-links">
+      <h4>Следите за нами</h4>
+      <a href="#">Telegram</a>
+      <a href="#">VK</a>
+      <a href="#">Discord</a>
+      <a href="#">YouTube</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024 CS2DROP. 18+ Играйте ответственно.</span>
+  </div>
+</footer>
+
+<div class="notification" id="notification"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
